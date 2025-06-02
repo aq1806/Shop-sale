@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Previous Sales</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f7f9fc; }
+        h1 {
+            text-align: center;
+            font-size: 2.8rem;
+            margin-bottom: 35px;
+            color: #2c3e50;
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto 25px;
+            text-align: center;
+        }
+        input[type="date"] {
+            font-size: 1.2rem;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 65%;
+            box-sizing: border-box;
+        }
+        button {
+            font-size: 1.2rem;
+            padding: 10px 18px;
+            margin-left: 10px;
+            border-radius: 6px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #1c5980;
+        }
+        .summary-box {
+            max-width: 100%;
+            margin: 30px auto 25px;
+            padding: 25px 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            justify-content: space-around;
+        }
+        table {
+            border-collapse: collapse;
+            width: 90%;
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 14px 12px;
+            text-align: left;
+            font-size: 1.15rem;
+        }
+        th {
+            background-color: #f2f6fc;
+            color: #34495e;
+        }
+        tbody tr.online-payment {
+            background-color: #d4f0ff;
+        }
+        .no-sales {
+            text-align: center;
+            font-size: 1.3rem;
+            color: #777;
+            padding: 20px 0;
+        }
+        a {
+            display: block;
+            max-width: 900px;
+            margin: 40px auto 0;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #2980b9;
+            font-weight: 600;
+            text-decoration: none;
+        }
+    </style>
+    <script>
+        function confirmDelete(event) {
+            if(!confirm('Are you sure you want to delete this entry?')) {
+                event.preventDefault();
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Previous Sales</h1>
+    <form method="POST">
+        <label for="date">Select Date:</label>
+        <input type="date" id="date" name="date" value="{{ selected_date }}" required />
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if selected_date %}
+    <div class="summary-box">
+        <div>Date: {{ selected_date }}</div>
+        <div>Total Sales Amount: {{ '%.3f'|format(total) }}</div>
+        <div>Total Customers: {{ count }}</div>
+    </div>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Items</th>
+                <th>Payment Type</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sale in sales %}
+            <tr class="{{ 'online-payment' if sale[4] == 'Online' else '' }}">
+                <td>{{ sale[1] }}</td>
+                <td>{{ '%.3f'|format(sale[2]) }}</td>
+                <td>{{ sale[3] }}</td>
+                <td>{{ sale[4] }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('delete', row_id=sale[0], from_page='previous') }}" onsubmit="confirmDelete(event);">
+                        <button type="submit" class="btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="no-sales">No sales for this date.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ url_for('index') }}">Back to Today's Sales</a>
+</body>
+</html>
