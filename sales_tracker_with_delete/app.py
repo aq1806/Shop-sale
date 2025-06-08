@@ -118,6 +118,28 @@ def delete(row_id):
         return redirect(url_for('previous'))
     else:
         return redirect(url_for('index'))
+    
+@app.route('/add_past_sale', methods=['GET', 'POST'])
+def add_past_sale():
+    init_excel()
+
+    if request.method == 'POST':
+        date = request.form.get('date')
+        amount = request.form.get('amount')
+        items_list = request.form.getlist('items')
+        items_list = [item.strip() for item in items_list if item.strip()]
+        items_str = ' + '.join(items_list)
+        payment_type = request.form.get('payment_type', 'Cash')
+
+        if date and amount and items_str:
+            wb = openpyxl.load_workbook(EXCEL_FILE)
+            ws = wb.active
+            sale_id = get_next_id()
+            ws.append([sale_id, date, round(float(amount), 3), items_str, payment_type])
+            wb.save(EXCEL_FILE)
+            return redirect(url_for('add_past_sale'))
+
+    return render_template('add_past_sale.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
